@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+{% block title %}대시보드 - TodoList{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4">
+            <i class="fas fa-tachometer-alt"></i> 대시보드
+            <small class="text-muted">안녕하세요, {{ current_user.username }}님!</small>
+        </h1>
+    </div>
+</div>
+
+<!-- 통계 카드 -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ total_tasks }}</h4>
+                        <p class="mb-0">전체 작업</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-tasks fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ completed_tasks }}</h4>
+                        <p class="mb-0">완료된 작업</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ pending_tasks }}</h4>
+                        <p class="mb-0">대기 중인 작업</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-clock fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ today_completed }}</h4>
+                        <p class="mb-0">오늘 완료</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-calendar-check fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- 잔디 캘린더 -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-calendar"></i> 활동 캘린더 </h5>
+            </div>
+            <div class="card-body">
+                <div id="grass-calendar" class="grass-calendar">
+                    <div class="grass-legend mb-2">
+                        <span class="legend-text">적음</span>
+                        <div class="legend-squares">
+                            <div class="grass-square" data-level="0"></div>
+                            <div class="grass-square" data-level="1"></div>
+                            <div class="grass-square" data-level="2"></div>
+                            <div class="grass-square" data-level="3"></div>
+                            <div class="grass-square" data-level="4"></div>
+                        </div>
+                        <span class="legend-text">많음</span>
+                    </div>
+                    <div id="grass-grid" class="grass-grid"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 최근 작업 -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-clock"></i> 최근 작업</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_tasks %}
+                    {% for task in recent_tasks %}
+                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                        <div>
+                            <strong>{{ task.title }}</strong>
+                            <br>
+                            <small class="text-muted">
+                                <span class="badge bg-secondary">{{ task.category }}</span>
+                                {{ task.created_at.strftime('%m/%d %H:%M') }}
+                            </small>
+                        </div>
+                        <div>
+                            {% if task.status == 'completed' %}
+                                <i class="fas fa-check-circle text-success"></i>
+                            {% else %}
+                                <i class="fas fa-clock text-warning"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">아직 작업이 없습니다.</p>
+                {% endif %}
+                
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('main.add_task') }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus"></i> 새 작업 추가
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 카테고리별 빠른 접근 -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-layer-group"></i> 카테고리별 작업</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <a href="{{ url_for('main.tasks', category='회사일') }}" class="text-decoration-none">
+                            <div class="card bg-light hover-card">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-briefcase fa-3x text-primary mb-2"></i>
+                                    <h5>회사일</h5>
+                                    <p class="text-muted">업무 관련 작업</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{{ url_for('main.tasks', category='사이드프로젝트') }}" class="text-decoration-none">
+                            <div class="card bg-light hover-card">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-code fa-3x text-success mb-2"></i>
+                                    <h5>사이드프로젝트</h5>
+                                    <p class="text-muted">개인 프로젝트</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{{ url_for('main.tasks', category='공부') }}" class="text-decoration-none">
+                            <div class="card bg-light hover-card">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-graduation-cap fa-3x text-warning mb-2"></i>
+                                    <h5>공부</h5>
+                                    <p class="text-muted">학습 관련 작업</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// 잔디 캘린더 생성
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/api/grass_data')
+        .then(response => response.json())
+        .then(data => createGrassCalendar(data));
+});
+
+function createGrassCalendar(data) {
+    const grid = document.getElementById('grass-grid');
+    const today = new Date();
+    const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+    
+    // 주별로 정렬
+    const weeks = [];
+    let currentWeek = [];
+    
+    for (let d = new Date(oneYearAgo); d <= today; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split('T')[0];
+        const count = data[dateStr] || 0;
+        const level = getLevel(count);
+        
+        currentWeek.push({
+            date: new Date(d),
+            count: count,
+            level: level
+        });
+        
+        if (d.getDay() === 6 || d.getTime() === today.getTime()) {
+            weeks.push([...currentWeek]);
+            currentWeek = [];
+        }
+    }
+    
+    // HTML 생성
+    weeks.forEach(week => {
+        const weekDiv = document.createElement('div');
+        weekDiv.className = 'grass-week';
+        
+        week.forEach(day => {
+            const dayDiv = document.createElement('div');
+            dayDiv.className = 'grass-square';
+            dayDiv.setAttribute('data-level', day.level);
+            dayDiv.title = `${day.date.toLocaleDateString()} - ${day.count}개 작업 완료`;
+            weekDiv.appendChild(dayDiv);
+        });
+        
+        grid.appendChild(weekDiv);
+    });
+}
+
+function getLevel(count) {
+    if (count === 0) return 0;
+    if (count <= 2) return 1;
+    if (count <= 4) return 2;
+    if (count <= 6) return 3;
+    return 4;
+}
+</script>
+{% endblock %}

@@ -1,0 +1,222 @@
+/* 커스텀 스타일 */
+
+/* 잔디 캘린더 스타일 */
+.grass-calendar {
+    overflow-x: auto;
+}
+
+.grass-legend {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    font-size: 11px;
+    color: #768390;
+}
+
+.legend-squares {
+    display: flex;
+    margin: 0 5px;
+}
+
+.grass-grid {
+    display: flex;
+    flex-wrap: wrap;
+    max-width: 728px;
+}
+
+.grass-week {
+    display: flex;
+    flex-direction: column;
+}
+
+.grass-square {
+    width: 10px;
+    height: 10px;
+    margin: 1px;
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+.grass-square[data-level="0"] {
+    background-color: #ebedf0;
+}
+
+.grass-square[data-level="1"] {
+    background-color: #9be9a8;
+}
+
+.grass-square[data-level="2"] {
+    background-color: #40c463;
+}
+
+.grass-square[data-level="3"] {
+    background-color: #30a14e;
+}
+
+.grass-square[data-level="4"] {
+    background-color: #216e39;
+}
+
+.grass-square:hover {
+    stroke: #1b1f23;
+    stroke-width: 1px;
+}
+
+/* 작업 카드 스타일 */
+.task-card {
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+.task-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.task-card.completed {
+    background-color: #f8f9fa;
+    border-left-color: #28a745;
+}
+
+.task-checkbox {
+    transform: scale(1.2);
+}
+
+/* 우선순위 배지 */
+.badge {
+    font-size: 0.75em;
+}
+
+/* 호버 카드 */
+.hover-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+/* 통계 카드 */
+.card.bg-primary,
+.card.bg-success,
+.card.bg-warning,
+.card.bg-info {
+    border: none;
+}
+
+/* 네비게이션 바 */
+.navbar-brand {
+    font-weight: bold;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .grass-grid {
+        transform: scale(0.8);
+        transform-origin: left top;
+    }
+    
+    .task-card .row {
+        flex-direction: column;
+    }
+    
+    .task-card .col-md-1,
+    .task-card .col-md-2,
+    .task-card .col-md-6 {
+        margin-bottom: 10px;
+    }
+}
+
+/* 폼 스타일링 */
+.form-control:focus,
+.form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* 알림 스타일 */
+.alert {
+    border: none;
+    border-radius: 8px;
+}
+
+/* 버튼 스타일 */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    border: none;
+}
+
+.btn-success {
+    background: linear-gradient(45deg, #28a745, #1e7e34);
+    border: none;
+}
+
+.btn-warning {
+    background: linear-gradient(45deg, #ffc107, #e0a800);
+    border: none;
+}
+
+.btn-danger {
+    background: linear-gradient(45deg, #dc3545, #c82333);
+    border: none;
+}
+
+/* 카드 헤더 스타일 */
+.card-header {
+    background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+    border-bottom: 1px solid #dee2e6;
+    font-weight: 600;
+}
+
+/* 로딩 애니메이션 */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* 스크롤바 스타일 */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* 텍스트 선택 색상 */
+::selection {
+    background-color: #007bff;
+    color: white;
+}
+
+/* 포커스 아웃라인 제거 */
+*:focus {
+    outline: none;
+}
