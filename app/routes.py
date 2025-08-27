@@ -120,34 +120,6 @@ def delete_task(task_id):
     flash('작업이 삭제되었습니다!', 'success')
     return redirect(url_for('main.tasks'))
 
-@main.route('/api/grass_data')
-@login_required
-def grass_data():
-    """GitHub-like grass calendar data"""
-    # Get data for the past year
-    end_date = date.today()
-    start_date = end_date - timedelta(days=365)
-    
-    # Query completed tasks grouped by date
-    completed_tasks = db.session.query(
-        func.date(Task.completed_at).label('date'),
-        func.count(Task.id).label('count')
-    ).filter(
-        and_(
-            Task.user_id == current_user.id,
-            Task.status == 'completed',
-            func.date(Task.completed_at) >= start_date,
-            func.date(Task.completed_at) <= end_date
-        )
-    ).group_by(func.date(Task.completed_at)).all()
-    
-    # Convert to dictionary
-    data = {}
-    for task_date, count in completed_tasks:
-        data[task_date.strftime('%Y-%m-%d')] = count
-    
-    return jsonify(data)
-
 @main.route('/api/statistics')
 @login_required
 def statistics():
@@ -191,3 +163,47 @@ def recent_tasks():
         })
     
     return jsonify(tasks_data)
+
+@main.route('/api/calendar_events')
+@login_required
+def calendar_events():
+    """Get tasks as calendar events"""
+    start_date = request.args.get('start')
+    end_date = request.args.get('end')
+    
+    query = Task.query.filter_by(user_id=current_user.id)
+    
+    # 날짜 범위 필터링 (선택사항)
+    if start_date and end_date:
+        try:
+            start = datetime.strptime(start_date, '%Y-%m-%d').date()
+            end = datetime.strptime(end_date, '%Y-%m-%d').date()
+            
+            # 마감일이 있는 작업들 또는 생성일이 범위 내인 작업들
+            query = query.filter(
+                (Task.due_date.between(start, end)) |
+                (func.date(Task.created_at).between(start, end))
+            )
+        except ValueError:
+            pass  # 날짜 파싱 실패 시 필터링 없이 진행
+    
+    tasks = query.all()
+    
+    events = []
+    for task in tasks:
+        # 마감일이 있으면 마감일을, 없으면 생성일을 사용
+        event_date = task.due_date.strftime('%Y-%m-%d') if task.due_date else task.created_at.strftime('%Y-%m-%d')
+        
+        events.append({
+            'id': task.id,
+            'title': task.title,
+            'start': event_date,
+            'due_date': task.due_date.strftime('%Y-%m-%d') if task.due_date else None,
+            'created_at': task.created_at.strftime('%Y-%m-%d'),
+            'category': task.category,
+            'status': task.status,
+            'priority': task.priority,
+            'description': task.description
+        })
+    
+    return jsonify(events)

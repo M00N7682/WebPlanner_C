@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from flask_cors import CORS
 import os
 
 db = SQLAlchemy()
@@ -14,21 +15,22 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///todolist.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
+    # Enable CORS for React frontend
+    CORS(app, origins=['http://localhost:3000'], supports_credentials=True)
+    
     # Initialize extensions
     db.init_app(app)
     login_manager.init_app(app)
-    login_manager.login_view = 'auth.login'
+    login_manager.login_view = 'api.login'
     login_manager.login_message = '로그인이 필요합니다.'
     
     # Import models
     from app.models import User, Task
     
     # Register blueprints
-    from app.routes import main
-    from app.auth import auth
+    from app.api import api
     
-    app.register_blueprint(main)
-    app.register_blueprint(auth)
+    app.register_blueprint(api, url_prefix='/api')
     
     with app.app_context():
         db.create_all()
