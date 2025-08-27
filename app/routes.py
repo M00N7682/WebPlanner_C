@@ -147,3 +147,47 @@ def grass_data():
         data[task_date.strftime('%Y-%m-%d')] = count
     
     return jsonify(data)
+
+@main.route('/api/statistics')
+@login_required
+def statistics():
+    """Get current statistics for dashboard"""
+    total_tasks = Task.query.filter_by(user_id=current_user.id).count()
+    completed_tasks = Task.query.filter_by(user_id=current_user.id, status='completed').count()
+    pending_tasks = total_tasks - completed_tasks
+    
+    # Get today's completed tasks
+    today = date.today()
+    today_completed = Task.query.filter_by(
+        user_id=current_user.id, 
+        status='completed'
+    ).filter(
+        func.date(Task.completed_at) == today
+    ).count()
+    
+    return jsonify({
+        'total_tasks': total_tasks,
+        'completed_tasks': completed_tasks,
+        'pending_tasks': pending_tasks,
+        'today_completed': today_completed
+    })
+
+@main.route('/api/recent_tasks')
+@login_required
+def recent_tasks():
+    """Get recent tasks for dashboard"""
+    recent_tasks = Task.query.filter_by(user_id=current_user.id)\
+                           .order_by(Task.created_at.desc())\
+                           .limit(5).all()
+    
+    tasks_data = []
+    for task in recent_tasks:
+        tasks_data.append({
+            'id': task.id,
+            'title': task.title,
+            'category': task.category,
+            'status': task.status,
+            'created_at': task.created_at.strftime('%m/%d %H:%M')
+        })
+    
+    return jsonify(tasks_data)

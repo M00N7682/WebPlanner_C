@@ -201,55 +201,35 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => createGrassCalendar(data));
 });
 
-function createGrassCalendar(data) {
-    const grid = document.getElementById('grass-grid');
-    const today = new Date();
-    const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
-    
-    // 주별로 정렬
-    const weeks = [];
-    let currentWeek = [];
-    
-    for (let d = new Date(oneYearAgo); d <= today; d.setDate(d.getDate() + 1)) {
-        const dateStr = d.toISOString().split('T')[0];
-        const count = data[dateStr] || 0;
-        const level = getLevel(count);
-        
-        currentWeek.push({
-            date: new Date(d),
-            count: count,
-            level: level
-        });
-        
-        if (d.getDay() === 6 || d.getTime() === today.getTime()) {
-            weeks.push([...currentWeek]);
-            currentWeek = [];
-        }
+// 페이지 포커스 시 데이터 새로고침
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+        // 다른 탭에서 돌아왔을 때 데이터 새로고침
+        setTimeout(() => {
+            if (typeof updateGrassCalendar === 'function') {
+                updateGrassCalendar();
+            }
+            if (typeof updateStatistics === 'function') {
+                updateStatistics();
+            }
+            if (typeof updateRecentTasks === 'function') {
+                updateRecentTasks();
+            }
+        }, 500);
     }
-    
-    // HTML 생성
-    weeks.forEach(week => {
-        const weekDiv = document.createElement('div');
-        weekDiv.className = 'grass-week';
-        
-        week.forEach(day => {
-            const dayDiv = document.createElement('div');
-            dayDiv.className = 'grass-square';
-            dayDiv.setAttribute('data-level', day.level);
-            dayDiv.title = `${day.date.toLocaleDateString()} - ${day.count}개 작업 완료`;
-            weekDiv.appendChild(dayDiv);
-        });
-        
-        grid.appendChild(weekDiv);
-    });
-}
+});
 
-function getLevel(count) {
-    if (count === 0) return 0;
-    if (count <= 2) return 1;
-    if (count <= 4) return 2;
-    if (count <= 6) return 3;
-    return 4;
-}
+// 주기적으로 데이터 업데이트 (5분마다)
+setInterval(() => {
+    if (typeof updateGrassCalendar === 'function') {
+        updateGrassCalendar();
+    }
+    if (typeof updateStatistics === 'function') {
+        updateStatistics();
+    }
+    if (typeof updateRecentTasks === 'function') {
+        updateRecentTasks();
+    }
+}, 300000); // 5분 = 300,000ms
 </script>
 {% endblock %}

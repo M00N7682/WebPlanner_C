@@ -184,6 +184,165 @@ function makeRequest(url, options = {}) {
         });
 }
 
+// 잔디 캘린더 업데이트 함수
+function updateGrassCalendar() {
+    const calendar = document.getElementById('grass-calendar');
+    if (calendar) {
+        calendar.classList.add('updating');
+    }
+    
+    fetch('/api/grass_data')
+        .then(response => response.json())
+        .then(data => {
+            // 기존 캘린더 제거
+            const grid = document.getElementById('grass-grid');
+            if (grid) {
+                grid.innerHTML = '';
+                createGrassCalendar(data);
+            }
+        })
+        .catch(error => {
+            console.error('잔디 캘린더 업데이트 실패:', error);
+        })
+        .finally(() => {
+            if (calendar) {
+                calendar.classList.remove('updating');
+            }
+        });
+}
+
+// 통계 카드 업데이트 함수
+function updateStatistics() {
+    fetch('/api/statistics')
+        .then(response => response.json())
+        .then(data => {
+            // 통계 카드 업데이트
+            const totalTasks = document.querySelector('.card.bg-primary h4');
+            const completedTasks = document.querySelector('.card.bg-success h4');
+            const pendingTasks = document.querySelector('.card.bg-warning h4');
+            const todayCompleted = document.querySelector('.card.bg-info h4');
+            
+            if (totalTasks) totalTasks.textContent = data.total_tasks;
+            if (completedTasks) completedTasks.textContent = data.completed_tasks;
+            if (pendingTasks) pendingTasks.textContent = data.pending_tasks;
+            if (todayCompleted) todayCompleted.textContent = data.today_completed;
+        })
+        .catch(error => {
+            console.error('통계 업데이트 실패:', error);
+        });
+}
+
+// 최근 작업 목록 업데이트 함수
+function updateRecentTasks() {
+    fetch('/api/recent_tasks')
+        .then(response => response.json())
+        .then(data => {
+            const recentTasksContainer = document.querySelector('.card .card-body');
+            if (!recentTasksContainer) return;
+            
+            // 기존 작업 목록 제거 (새 작업 추가 버튼 제외)
+            const existingTasks = recentTasksContainer.querySelectorAll('.d-flex.justify-content-between.align-items-center');
+            existingTasks.forEach(task => task.remove());
+            
+            // 새 작업 목록 추가
+            if (data.length > 0) {
+                data.forEach(task => {
+                    const taskDiv = document.createElement('div');
+                    taskDiv.className = 'd-flex justify-content-between align-items-center mb-2 p-2 border rounded';
+                    taskDiv.innerHTML = `
+                        <div>
+                            <strong>${task.title}</strong>
+                            <br>
+                            <small class="text-muted">
+                                <span class="badge bg-secondary">${task.category}</span>
+                                ${task.created_at}
+                            </small>
+                        </div>
+                        <div>
+                            ${task.status === 'completed' 
+                                ? '<i class="fas fa-check-circle text-success"></i>' 
+                                : '<i class="fas fa-clock text-warning"></i>'}
+                        </div>
+                    `;
+                    
+                    // 새 작업 추가 버튼 앞에 삽입
+                    const addButton = recentTasksContainer.querySelector('.text-center');
+                    if (addButton) {
+                        recentTasksContainer.insertBefore(taskDiv, addButton);
+                    }
+                });
+            } else {
+                // 작업이 없을 때 메시지 추가
+                const noTasksMsg = document.createElement('p');
+                noTasksMsg.className = 'text-muted';
+                noTasksMsg.textContent = '아직 작업이 없습니다.';
+                
+                const addButton = recentTasksContainer.querySelector('.text-center');
+                if (addButton) {
+                    recentTasksContainer.insertBefore(noTasksMsg, addButton);
+                }
+            }
+        })
+        .catch(error => {
+            console.error('최근 작업 업데이트 실패:', error);
+        });
+}
+
+// 잔디 캘린더 생성 함수 (전역으로 사용)
+function createGrassCalendar(data) {
+    const grid = document.getElementById('grass-grid');
+    if (!grid) return;
+    
+    const today = new Date();
+    const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+    
+    // 주별로 정렬
+    const weeks = [];
+    let currentWeek = [];
+    
+    for (let d = new Date(oneYearAgo); d <= today; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split('T')[0];
+        const count = data[dateStr] || 0;
+        const level = getGrassLevel(count);
+        
+        currentWeek.push({
+            date: new Date(d),
+            count: count,
+            level: level
+        });
+        
+        if (d.getDay() === 6 || d.getTime() === today.getTime()) {
+            weeks.push([...currentWeek]);
+            currentWeek = [];
+        }
+    }
+    
+    // HTML 생성
+    weeks.forEach(week => {
+        const weekDiv = document.createElement('div');
+        weekDiv.className = 'grass-week';
+        
+        week.forEach(day => {
+            const dayDiv = document.createElement('div');
+            dayDiv.className = 'grass-square';
+            dayDiv.setAttribute('data-level', day.level);
+            dayDiv.title = `${day.date.toLocaleDateString()} - ${day.count}개 작업 완료`;
+            weekDiv.appendChild(dayDiv);
+        });
+        
+        grid.appendChild(weekDiv);
+    });
+}
+
+// 잔디 레벨 계산 함수
+function getGrassLevel(count) {
+    if (count === 0) return 0;
+    if (count <= 2) return 1;
+    if (count <= 4) return 2;
+    if (count <= 6) return 3;
+    return 4;
+}
+
 // 폼 데이터를 JSON으로 변환
 function formDataToJSON(formData) {
     const object = {};
